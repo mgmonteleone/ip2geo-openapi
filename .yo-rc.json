@@ -1,0 +1,11 @@
+{
+  "generator-openapi-repo": {
+    "importExistingSpec": true,
+    "importedSpec": "swagger.yaml",
+    "name": "ip2Geo",
+    "repo": "mgmonteleone/ip2geo-openapi",
+    "splitSpec": false,
+    "samples": false,
+    "installSwaggerUI": true
+  }
+}
