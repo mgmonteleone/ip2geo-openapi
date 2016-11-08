@@ -1,0 +1,160 @@
+swagger: '2.0'
+info:
+  description: |
+    Optimized IP Address to Country, Based on MaxMind db.
+
+    Utilizes the paid version of the country database, which is updated weekly. 
+    A built in endpoint uses MaxMind's updater service and checks for, retrieves
+    and instsalls the latest version of the database.
+  version: 1.0.0
+  title: iGP IP to Country
+  contact:
+    email: apis@igp.tech
+  license:
+    name: Proprietery
+host: geo.igpte.ch
+basePath: /v1
+tags:
+  - name: admin
+    description: Secured Admin-only calls
+  - name: public
+    description: Public Endpoints
+schemes:
+  - https
+  - http
+paths:
+  /update:
+    put:
+      summary: Update the Geo2 Database
+      description: |
+        Uses MaxMind automated updater system to check for and download
+        the latest version of the Country database.
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              output:
+                type: array
+                items:
+                  $ref: '#/definitions/logs'
+  /:
+    head:
+      tags:
+        - public
+      summary: Quickly returns the country code in the returned headers. No body.
+      operationId: head
+      description: 'Fastest way to get a country code, returns only x-country-code header.'
+      parameters:
+        - in: query
+          name: ip
+          description: Dotted quad IP address
+          required: true
+          type: string
+      responses:
+        '200':
+          description: blank response
+          headers:
+            x-country-code:
+              type: string
+              description: A two letter ISO country code.
+        '400':
+          description: 'Invalid, or missing IP'
+        '404':
+          description: the IP is not found in the GeoLocation database.
+    get:
+      tags:
+        - public
+      summary: Retrieves GEO information for an ip address
+      operationId: get
+      description: |
+        Returns Country information for the passed dotted quad IP adress
+      produces:
+        - application/json
+        - application/msgpack
+      parameters:
+        - in: query
+          name: ip
+          description: Dotted quad IP address
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Country and restriction information for the passed IP.
+          schema:
+            $ref: '#/definitions/IPInfo'
+        '400':
+          description: 'Invalid, or missing IP'
+        '404':
+          description: the IP is not found in the GeoLocation database.
+definitions:
+  logs:
+    type: object
+    description: Line by line output of the operation.
+    properties:
+      logline:
+        type: string
+  IPInfo:
+    type: object
+    properties:
+      status:
+        type: number
+        format: int
+        example: 1
+      result:
+        $ref: '#/definitions/results'
+  results:
+    type: object
+    properties:
+      restricted:
+        $ref: '#/definitions/restrictions'
+      country:
+        $ref: '#/definitions/countryData'
+  countryData:
+    type: object
+    description: Country Information
+    properties:
+      iso_code:
+        type: string
+        description: ISO standard 2 letter country code.
+      names:
+        $ref: '#/definitions/countryNames'
+  countryNames:
+    type: object
+    description: 'Country Names object, iso code and Name'
+    properties:
+      en:
+        type: string
+      de:
+        type: string
+      es:
+        type: string
+      fr:
+        type: string
+      jp:
+        type: string
+      pt-BR:
+        type: string
+      ru:
+        type: string
+      zh-CN:
+        type: string
+  restrictions:
+    type: object
+    description: 'LIst of GameProviders, and if the country is restricted or not.'
+    properties:
+      ne:
+        type: boolean
+        description: Is Netent restricted?
+      mg:
+        type: boolean
+        description: Is Microgaming restricted?
+      is:
+        type: boolean
+        description: Is iSoftbet restricted?
+      ox:
+        type: boolean
+        description: Is Oryx restricted?
